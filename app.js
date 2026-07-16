@@ -8,12 +8,18 @@
     // --- State ---
     let currentScreen = 'landing';
     let currentArea = null;        // null = all areas (simulacro completo)
+    let currentLevel = 1;         // 1 = fundamental, 2 = avanzado
     let quizQuestions = [];
     let currentQuestionIndex = 0;
     let userAnswers = [];          // { questionIndex, selectedOption, correct, timeSpent }
     let timerInterval = null;
     let timeLeft = 120;            // seconds per question
     const TIME_PER_QUESTION = 120;
+
+    // --- Question bank helper ---
+    function getQuestionBank() {
+        return currentLevel === 2 ? QUESTIONS_LEVEL2 : QUESTIONS;
+    }
 
     // --- DOM Refs ---
     const screens = {
@@ -80,7 +86,9 @@
         const grid = document.getElementById('area-grid');
         grid.innerHTML = '';
         AREAS.forEach(area => {
-            const count = QUESTIONS.filter(q => q.area === area.id).length;
+            const countL1 = QUESTIONS.filter(q => q.area === area.id).length;
+            const countL2 = QUESTIONS_LEVEL2.filter(q => q.area === area.id).length;
+            const totalCount = countL1 + countL2;
             const card = document.createElement('div');
             card.className = 'area-card';
             card.setAttribute('data-color', area.color);
@@ -88,7 +96,7 @@
                 <span class="area-card-icon">${area.icon}</span>
                 <span class="area-card-title">${area.name}</span>
                 <span class="area-card-desc">${area.desc}</span>
-                <span class="area-card-count">${count} preguntas disponibles</span>
+                <span class="area-card-count">${totalCount} preguntas (Nivel 1: ${countL1} · Nivel 2: ${countL2})</span>
             `;
             card.addEventListener('click', () => openStudyGuide(area.id));
             grid.appendChild(card);
@@ -131,17 +139,27 @@
         return a;
     }
 
+    // --- Level Picker ---
+    function showLevelPicker() {
+        document.getElementById('level-overlay').classList.remove('hidden');
+    }
+
+    function hideLevelPicker() {
+        document.getElementById('level-overlay').classList.add('hidden');
+    }
+
     // --- Start Quiz ---
     function startQuiz(areaId) {
         currentArea = areaId;
+        const bank = getQuestionBank();
         if (areaId) {
-            quizQuestions = shuffle(QUESTIONS.filter(q => q.area === areaId));
+            quizQuestions = shuffle(bank.filter(q => q.area === areaId));
         } else {
-            // Full simulacro: pick questions from each area proportionally
-            quizQuestions = shuffle(QUESTIONS);
+            quizQuestions = shuffle(bank);
         }
         currentQuestionIndex = 0;
         userAnswers = [];
+        hideLevelPicker();
         showScreen('quiz');
         renderQuestion();
     }
@@ -508,16 +526,42 @@
 
     // --- Event Listeners ---
 
-    // Landing
-    document.getElementById('btn-start-quiz').addEventListener('click', () => startQuiz(null));
+    // Landing — show level picker instead of starting directly
+    document.getElementById('btn-start-quiz').addEventListener('click', showLevelPicker);
     document.getElementById('btn-pick-area').addEventListener('click', () => showScreen('areaPicker'));
+
+    // Level Picker
+    document.getElementById('level-close').addEventListener('click', hideLevelPicker);
+    document.getElementById('level-overlay').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) hideLevelPicker();
+    });
+    document.getElementById('btn-level1').addEventListener('click', () => {
+        currentLevel = 1;
+        startQuiz(null);
+    });
+    document.getElementById('btn-level2').addEventListener('click', () => {
+        currentLevel = 2;
+        startQuiz(null);
+    });
 
     // Area Picker
     document.getElementById('btn-back-landing').addEventListener('click', () => showScreen('landing'));
 
     // Study Guide
     document.getElementById('btn-back-from-guide').addEventListener('click', () => showScreen('areaPicker'));
-    document.getElementById('btn-start-area-quiz').addEventListener('click', () => startQuiz(currentArea));
+    document.getElementById('btn-start-area-quiz').addEventListener('click', () => {
+        // When practicing by area, use combined questions from both levels
+        currentArea = currentArea; // keep the area
+        const combined = shuffle(
+            [...QUESTIONS.filter(q => q.area === currentArea),
+             ...QUESTIONS_LEVEL2.filter(q => q.area === currentArea)]
+        );
+        quizQuestions = combined;
+        currentQuestionIndex = 0;
+        userAnswers = [];
+        showScreen('quiz');
+        renderQuestion();
+    });
 
     // Quiz
     document.getElementById('btn-quit-quiz').addEventListener('click', () => {

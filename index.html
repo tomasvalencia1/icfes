@@ -58,6 +58,31 @@
                     </button>
                 </div>
 
+                <!-- Level Picker Modal -->
+                <div class="level-overlay hidden" id="level-overlay">
+                    <div class="level-modal">
+                        <button class="level-close" id="level-close">&times;</button>
+                        <h3 class="level-modal-title">Elige el Nivel del Simulacro</h3>
+                        <p class="level-modal-desc">Ambos niveles tienen ~48 preguntas de las 5 áreas. El Nivel 2 incluye preguntas de mayor complejidad.</p>
+                        <div class="level-options">
+                            <button class="level-card" id="btn-level1">
+                                <span class="level-badge">Nivel 1</span>
+                                <span class="level-card-icon">📝</span>
+                                <span class="level-card-title">Repaso Fundamental</span>
+                                <span class="level-card-desc">Conceptos esenciales y preguntas base para afianzar tu conocimiento.</span>
+                                <span class="level-card-count">48 preguntas</span>
+                            </button>
+                            <button class="level-card" id="btn-level2">
+                                <span class="level-badge level-badge-adv">Nivel 2</span>
+                                <span class="level-card-icon">🧠</span>
+                                <span class="level-card-title">Repaso Avanzado</span>
+                                <span class="level-card-desc">Preguntas más analíticas con mayor profundidad y dificultad.</span>
+                                <span class="level-card-count">48 preguntas</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="landing-stats" id="landing-stats" style="display:none;">
                     <div class="stat-pill">
                         <span class="stat-label">Última sesión</span>
@@ -193,6 +218,7 @@
     </div>
 
     <script src="questions.js"></script>
+    <script src="questions_level2.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
